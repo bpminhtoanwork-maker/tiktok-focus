@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechFocus - Top 100 TikTok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .video-container { scroll-snap-type: y mandatory; overflow-y: scroll; height: calc(100vh - 60px); scroll-behavior: smooth; }
+        .video-card { scroll-snap-align: start; height: calc(100vh - 60px); display: flex; align-items: center; justify-content: center; background: #000; border-bottom: 1px solid #1f2937; }
+        .video-container::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-black text-white overflow-hidden">
+    <header id="nav" class="h-[60px] bg-black flex items-center overflow-x-auto px-4 gap-3 border-b border-gray-800"></header>
+    <main id="app" class="video-container"></main>
+
+    <script async src="https://www.tiktok.com/embed.js"></script>
+    <script>
+        let allData = {};
+
+        async function init() {
+            try {
+                const res = await fetch('data.json');
+                allData = await res.json();
+                const topics = Object.keys(allData);
+                renderNav(topics);
+                if(topics.length > 0) filterVideos(topics[0]);
+            } catch (e) {
+                document.getElementById('app').innerHTML = `<p class="p-10 text-center">Đang khởi tạo dữ liệu lần đầu (Vui lòng đợi bot chạy...)</p>`;
+            }
+        }
+
+        function renderNav(topics) {
+            const nav = document.getElementById('nav');
+            nav.innerHTML = topics.map(t => `<button onclick="filterVideos('${t}')" class="topic-btn bg-gray-800 px-4 py-1 rounded-full text-sm font-bold flex-shrink-0">${t}</button>`).join('');
+        }
+
+        function filterVideos(topic) {
+            const btns = document.querySelectorAll('.topic-btn');
+            btns.forEach(b => b.classList.toggle('bg-red-600', b.innerText === topic));
+            
+            const container = document.getElementById('app');
+            container.innerHTML = allData[topic].map(id => `
+                <div class="video-card">
+                    <blockquote class="tiktok-embed" data-video-id="${id}" style="max-width: 605px; min-width: 325px;">
+                        <section></section>
+                    </blockquote>
+                </div>
+            `).join('');
+            if (window.TiktokEmbed) window.TiktokEmbed.lib.render();
+            container.scrollTop = 0;
+        }
+
+        init();
+    </script>
+</body>
+</html>
